@@ -25,3 +25,20 @@
 
 (defn create-schema [connection]
   (d/transact connection schema))
+
+;(defn all-products-pull [db]
+;  (d/q '[:find (pull ?product [*])
+;         :where [?product :product/name]]
+;       db))
+;
+;(defn all-products [db]
+;  (d/q '[:find (pull ?entity [:db/id :product/name :product/price])
+;         :where [?entity :product/name]]
+;       db))
+
+(defn all-products [db]
+  (d/q '[:find ?entity ?name ?price
+         :keys transaction-id name price
+         :where [?entity :product/name ?name]
+         [?entity :product/price ?price]]
+       db))
