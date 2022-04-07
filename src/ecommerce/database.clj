@@ -21,7 +21,10 @@
              {:db/ident       :product/price
               :db/valueType   :db.type/bigdec
               :db/cardinality :db.cardinality/one
-              :db/doc         "Product price"}])
+              :db/doc         "Product price"}
+             {:db/ident       :product/keyword
+              :db/valueType   :db.type/string
+              :db/cardinality :db.cardinality/many}])
 
 (defn create-schema [connection]
   (d/transact connection schema))
@@ -42,3 +45,18 @@
          :where [?entity :product/name ?name]
          [?entity :product/price ?price]]
        db))
+
+(defn all-products-by-minimum-price [db minimum-price]
+  (d/q '[:find ?name ?price
+         :in $ ?minimum-price
+         :keys name price
+         :where [?entity :product/price ?price]
+         [(>= ?price ?minimum-price)]
+         [?entity :product/name ?name]]
+       db minimum-price))
+
+(defn all-products-by-keyword [db product-keyword]
+  (d/q '[:find (pull ?product [*])
+         :in $ ?product-keyword
+         :where [?product :product/keyword ?product-keyword]]
+       db product-keyword))
