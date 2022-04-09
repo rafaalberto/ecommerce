@@ -17,14 +17,26 @@
       keyboard (model/new-product (uuid) "Keyboard" "new_keyboard" 200.00M)]
   (db/add-products! connection [computer smartphone keyboard]))
 
+(def mouse (model/new-product (uuid) "Mouse" "new_mouse" 70.00M))
+
+(db/add-products! connection [mouse])
+
+(pprint (db/find-product-by-id (d/db connection) (:product/id mouse)))
+
 ;update
-(d/transact connection [[:db/add 17592186045418 :product/name "Desktop"]])
+;(d/transact connection [[:db/add 17592186045418 :product/name "Desktop"]])
+
+(d/transact connection [[:db/add [:product/id (:product/id mouse)]
+                         :product/name "Mouse updated"]])
 
 (d/transact connection [[:db/add 17592186045418 :product/keyword "desktop"]
                         [:db/add 17592186045418 :product/keyword "smart"]])
 
 ;delete
-(d/transact connection [[:db/retract 17592186045420 :product/name "Keyboard"]])
+;(d/transact connection [[:db/retract 17592186045422 :product/name "Keyboard"]])
+
+(d/transact connection [[:db/retract [:product/id (:product/id mouse)]
+                         :product/name "Mouse"]])
 
 ;read
 (println "Current data")

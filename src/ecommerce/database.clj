@@ -53,6 +53,9 @@
          [?entity :product/price ?price]]
        db))
 
+(defn find-product-by-id [db uuid]
+  (d/pull db '[*] [:product/id uuid]))
+
 (defn all-products-by-minimum-price [db minimum-price]
   (d/q '[:find ?id ?name ?price
          :in $ ?minimum-price
