@@ -2,17 +2,20 @@
   (:use [clojure pprint])
   (:require [datomic.api :as d]
             [ecommerce.database :as db]
-            [ecommerce.model :as model]))
+            [ecommerce.model :as model])
+  (:import (java.util UUID)))
 
-(def connection (db/open-connection))
+(def connection (db/open-connection!))
 
-(db/create-schema connection)
+(db/create-schema! connection)
+
+(defn uuid [] (UUID/randomUUID))
 
 ;create
-(let [computer (model/new-product "Computer" "new_computer" 2500.00M)
-      smartphone (model/new-product "Smartphone" "new_smart" 1400.00M)
-      keyboard (model/new-product "Keyboard" "new_keyboard" 200.00M)]
-  (d/transact connection [computer smartphone keyboard]))
+(let [computer (model/new-product (uuid) "Computer" "new_computer" 2500.00M)
+      smartphone (model/new-product (uuid) "Smartphone" "new_smart" 1400.00M)
+      keyboard (model/new-product (uuid) "Keyboard" "new_keyboard" 200.00M)]
+  (db/add-products! connection [computer smartphone keyboard]))
 
 ;update
 (d/transact connection [[:db/add 17592186045418 :product/name "Desktop"]])
@@ -34,4 +37,6 @@
 
 (pprint (db/all-products-by-minimum-price (d/db connection) 1000.00M))
 
-(db/delete-database)
+(pprint (db/all-products-by-keyword (d/db connection) "smart"))
+
+(db/delete-database!)

@@ -3,11 +3,11 @@
 
 (def db-uri "datomic:dev://localhost:4334/ecommerce")
 
-(defn open-connection []
+(defn open-connection! []
   (d/create-database db-uri)
   (d/connect db-uri))
 
-(defn delete-database []
+(defn delete-database! []
   (d/delete-database db-uri))
 
 (def schema [{:db/ident       :product/name
@@ -24,9 +24,15 @@
               :db/doc         "Product price"}
              {:db/ident       :product/keyword
               :db/valueType   :db.type/string
-              :db/cardinality :db.cardinality/many}])
+              :db/cardinality :db.cardinality/many
+              :db/doc         "Keywords"}
+             {:db/ident       :product/id
+              :db/valueType   :db.type/uuid
+              :db/cardinality :db.cardinality/one
+              :db/unique      :db.unique/identity
+              :db/doc         "Product ID"}])
 
-(defn create-schema [connection]
+(defn create-schema! [connection]
   (d/transact connection schema))
 
 ;(defn all-products-pull [db]
@@ -40,18 +46,20 @@
 ;       db))
 
 (defn all-products [db]
-  (d/q '[:find ?entity ?name ?price
-         :keys transaction-id name price
-         :where [?entity :product/name ?name]
+  (d/q '[:find ?entity ?id ?name ?price
+         :keys transaction-id id name price
+         :where [?entity :product/id ?id]
+         [?entity :product/name ?name]
          [?entity :product/price ?price]]
        db))
 
 (defn all-products-by-minimum-price [db minimum-price]
-  (d/q '[:find ?name ?price
+  (d/q '[:find ?id ?name ?price
          :in $ ?minimum-price
-         :keys name price
+         :keys id name price
          :where [?entity :product/price ?price]
          [(>= ?price ?minimum-price)]
+         [?entity :product/id ?id]
          [?entity :product/name ?name]]
        db minimum-price))
 
@@ -60,3 +68,6 @@
          :in $ ?product-keyword
          :where [?product :product/keyword ?product-keyword]]
        db product-keyword))
+
+(defn add-products! [connection products]
+  (d/transact connection products))
