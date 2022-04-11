@@ -26,17 +26,13 @@
 ;update
 ;(d/transact connection [[:db/add 17592186045418 :product/name "Desktop"]])
 
-(d/transact connection [[:db/add [:product/id (:product/id mouse)]
-                         :product/name "Mouse updated"]])
+(d/transact connection [[:db/add [:product/id (:product/id mouse)] :product/name "Mouse updated"]])
 
 (d/transact connection [[:db/add 17592186045418 :product/keyword "desktop"]
                         [:db/add 17592186045418 :product/keyword "smart"]])
 
-;delete
-;(d/transact connection [[:db/retract 17592186045422 :product/name "Keyboard"]])
-
-(d/transact connection [[:db/retract [:product/id (:product/id mouse)]
-                         :product/name "Mouse"]])
+(println "Delete data")
+(db/delete-products! connection mouse)
 
 ;read
 (println "Current data")
