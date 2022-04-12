@@ -75,8 +75,16 @@
 (defn add-products! [connection products]
   (d/transact connection products))
 
+(defn- vector-to-map [product]
+  (let [fields (:fields product)]
+    (reduce (fn [items item] (conj items
+                                   [:db/add [:product/id (:id product)]
+                                    (first (keys item)) (first (vals item))]))
+            []
+            fields)))
+
 (defn update-product! [connection product]
-  (d/transact connection product))
+  (d/transact connection (vector-to-map product)))
 
 (defn delete-products! [connection product]
   (d/transact connection [[:db/retract [:product/id (:product/id product)]

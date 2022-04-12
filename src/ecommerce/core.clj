@@ -23,9 +23,14 @@
 
 (pprint (db/find-product-by-id (d/db connection) (:product/id mouse)))
 
-(db/update-product! connection
-                    [[:db/add [:product/id (:product/id mouse)] :product/name "Mouse"]
-                     [:db/add [:product/id (:product/id mouse)] :product/keyword "test2"]])
+(println "update data")
+
+(def product-to-update {:id     (:product/id mouse)
+                        :fields [{:product/name "Mouse2"}
+                                 {:product/slug "mouse2fff"}
+                                 {:product/price 120.00M}]})
+
+(db/update-product! connection product-to-update)
 
 (println "Delete data")
 (db/delete-products! connection mouse)
