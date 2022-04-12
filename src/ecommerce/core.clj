@@ -23,13 +23,9 @@
 
 (pprint (db/find-product-by-id (d/db connection) (:product/id mouse)))
 
-;update
-;(d/transact connection [[:db/add 17592186045418 :product/name "Desktop"]])
-
-(d/transact connection [[:db/add [:product/id (:product/id mouse)] :product/name "Mouse updated"]])
-
-(d/transact connection [[:db/add 17592186045418 :product/keyword "desktop"]
-                        [:db/add 17592186045418 :product/keyword "smart"]])
+(db/update-product! connection
+                    [[:db/add [:product/id (:product/id mouse)] :product/name "Mouse"]
+                     [:db/add [:product/id (:product/id mouse)] :product/keyword "test2"]])
 
 (println "Delete data")
 (db/delete-products! connection mouse)

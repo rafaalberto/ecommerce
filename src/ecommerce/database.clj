@@ -75,6 +75,9 @@
 (defn add-products! [connection products]
   (d/transact connection products))
 
+(defn update-product! [connection product]
+  (d/transact connection product))
+
 (defn delete-products! [connection product]
   (d/transact connection [[:db/retract [:product/id (:product/id product)]
                            :product/name (:product/name product)]]))
