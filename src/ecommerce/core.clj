@@ -57,4 +57,8 @@
 
 (pprint (db/all-products-by-keyword (d/db connection) "smart"))
 
+(pprint (db/all-products-and-categories (d/db connection)))
+
+(pprint (db/all-products-by-category (d/db connection) "Electronics"))
+
 (db/delete-database!)

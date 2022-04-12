@@ -57,11 +57,6 @@
          [?entity :product/price ?price]]
        db))
 
-(defn all-categories [db]
-  (d/q '[:find (pull ?category [*])
-         :where [?category :category/id]]
-       db))
-
 (defn find-product-by-id [db uuid]
   (d/pull db '[*] [:product/id uuid]))
 
@@ -102,3 +97,29 @@
 (defn delete-products! [connection product]
   (d/transact connection [[:db/retract [:product/id (:product/id product)]
                            :product/name (:product/name product)]]))
+
+(defn all-categories [db]
+  (d/q '[:find (pull ?category [*])
+         :where [?category :category/id]]
+       db))
+
+(defn all-products-and-categories [db]
+  (d/q '[:find ?product-name ?category-name
+         :keys product category
+         :where [?product :product/name ?product-name]
+         [?product :product/category ?category]
+         [?category :category/name ?category-name]]
+       db))
+
+;(defn all-products-by-category [db category-name]
+;  (d/q '[:find (pull ?product [:product/name :product/slug {:product/category [:category/name]}])
+;         :in $ ?category-name
+;         :where [?category :category/name ?category-name]
+;         [?product :product/category ?category]]
+;       db category-name))
+
+(defn all-products-by-category [db category-name]
+  (d/q '[:find (pull ?category [:category/name {:product/_category [:product/name :product/slug]}])
+         :in $ ?category-name
+         :where [?category :category/name ?category-name]]
+       db category-name))
