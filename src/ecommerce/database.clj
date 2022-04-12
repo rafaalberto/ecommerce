@@ -10,7 +10,8 @@
 (defn delete-database! []
   (d/delete-database db-uri))
 
-(def schema [{:db/ident       :product/name
+(def schema [;product
+             {:db/ident       :product/name
               :db/valueType   :db.type/string
               :db/cardinality :db.cardinality/one
               :db/doc         "Product name"}
@@ -30,20 +31,23 @@
               :db/valueType   :db.type/uuid
               :db/cardinality :db.cardinality/one
               :db/unique      :db.unique/identity
-              :db/doc         "Product ID"}])
+              :db/doc         "Product ID"}
+             {:db/ident       :product/category
+              :db/valueType   :db.type/ref
+              :db/cardinality :db.cardinality/one
+              :db/doc         "Category ID"}
+
+             ;category
+             {:db/ident       :category/name
+              :db/valueType   :db.type/string
+              :db/cardinality :db.cardinality/one}
+             {:db/ident       :category/id
+              :db/valueType   :db.type/uuid
+              :db/cardinality :db.cardinality/one
+              :db/unique      :db.unique/identity}])
 
 (defn create-schema! [connection]
   (d/transact connection schema))
-
-;(defn all-products-pull [db]
-;  (d/q '[:find (pull ?product [*])
-;         :where [?product :product/name]]
-;       db))
-;
-;(defn all-products [db]
-;  (d/q '[:find (pull ?entity [:db/id :product/name :product/price])
-;         :where [?entity :product/name]]
-;       db))
 
 (defn all-products [db]
   (d/q '[:find ?entity ?id ?name ?price
@@ -51,6 +55,11 @@
          :where [?entity :product/id ?id]
          [?entity :product/name ?name]
          [?entity :product/price ?price]]
+       db))
+
+(defn all-categories [db]
+  (d/q '[:find (pull ?category [*])
+         :where [?category :category/id]]
        db))
 
 (defn find-product-by-id [db uuid]
@@ -75,7 +84,10 @@
 (defn add-products! [connection products]
   (d/transact connection products))
 
-(defn- vector-to-map [product]
+(defn add-categories! [connection categories]
+  (d/transact connection categories))
+
+(defn- update-converter [product]
   (let [fields (:fields product)]
     (reduce (fn [items item] (conj items
                                    [:db/add [:product/id (:id product)]
@@ -84,7 +96,8 @@
             fields)))
 
 (defn update-product! [connection product]
-  (d/transact connection (vector-to-map product)))
+  (println (update-converter product))
+  (d/transact connection (update-converter product)))
 
 (defn delete-products! [connection product]
   (d/transact connection [[:db/retract [:product/id (:product/id product)]
