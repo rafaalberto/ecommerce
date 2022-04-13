@@ -123,3 +123,26 @@
          :in $ ?category-name
          :where [?category :category/name ?category-name]]
        db category-name))
+
+(defn products-summary [db]
+  (d/q '[:find (min ?price) (max ?price) (count ?price) (sum ?price)
+         :keys min max quantity amount
+         :with ?product
+         :where [?product :product/price ?price]]
+       db))
+
+(defn products-summary-by-category [db]
+  (d/q '[:find ?category-name (min ?price) (max ?price) (count ?price) (sum ?price)
+         :keys category min max quantity amount
+         :with ?product
+         :where [?product :product/price ?price]
+         [?product :product/category ?category]
+         [?category :category/name ?category-name]]
+       db))
+
+(defn product-most-expensive [db]
+  (d/q '[:find (pull ?product [*])
+         :where [(q '[:find (max ?price)
+                      :where [_ :product/price ?price]] $) [[?price]]]
+         [?product :product/price ?price]]
+       db))

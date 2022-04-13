@@ -22,8 +22,8 @@
 ;create products
 (let [computer (model/new-product (uuid) "Computer" "new_computer" 2500.00M (:category/id electronics))
       smartphone (model/new-product (uuid) "Smartphone" "new_smart" 1400.00M (:category/id electronics))
-      ball (model/new-product (uuid) "Ball" "new_ball" 50.00M (:category/id ball))]
-  (db/add-products! connection [computer smartphone keyboard]))
+      ball (model/new-product (uuid) "Ball" "new_ball" 50.00M (:category/id sports))]
+  (db/add-products! connection [computer smartphone ball]))
 
 (def mouse (model/new-product (uuid) "Mouse" "new_mouse" 70.00M (:category/id electronics)))
 
@@ -60,5 +60,11 @@
 (pprint (db/all-products-and-categories (d/db connection)))
 
 (pprint (db/all-products-by-category (d/db connection) "Electronics"))
+
+(pprint (db/products-summary (d/db connection)))
+
+(pprint (db/products-summary-by-category (d/db connection)))
+
+(pprint (db/product-most-expensive (d/db connection)))
 
 (db/delete-database!)
