@@ -2,7 +2,9 @@
   (:require [datomic.api :as d]
             [schema.core :as s]
             [ecommerce.model :as model]
-            [clojure.walk :as walk])
+            [clojure.walk :as walk]
+            [ecommerce.db-schema :refer [schema]])
+  (:use [clojure pprint])
   (:import (java.util UUID)))
 
 (def db-uri "datomic:dev://localhost:4334/ecommerce")
@@ -13,42 +15,6 @@
 
 (defn delete-database! []
   (d/delete-database db-uri))
-
-(def schema [;product
-             {:db/ident       :product/name
-              :db/valueType   :db.type/string
-              :db/cardinality :db.cardinality/one
-              :db/doc         "Product name"}
-             {:db/ident       :product/slug
-              :db/valueType   :db.type/string
-              :db/cardinality :db.cardinality/one
-              :db/doc         "Path to access product by HTTP"}
-             {:db/ident       :product/price
-              :db/valueType   :db.type/bigdec
-              :db/cardinality :db.cardinality/one
-              :db/doc         "Product price"}
-             {:db/ident       :product/keyword
-              :db/valueType   :db.type/string
-              :db/cardinality :db.cardinality/many
-              :db/doc         "Keywords"}
-             {:db/ident       :product/id
-              :db/valueType   :db.type/uuid
-              :db/cardinality :db.cardinality/one
-              :db/unique      :db.unique/identity
-              :db/doc         "Product ID"}
-             {:db/ident       :product/category
-              :db/valueType   :db.type/ref
-              :db/cardinality :db.cardinality/one
-              :db/doc         "Category ID"}
-
-             ;category
-             {:db/ident       :category/name
-              :db/valueType   :db.type/string
-              :db/cardinality :db.cardinality/one}
-             {:db/ident       :category/id
-              :db/valueType   :db.type/uuid
-              :db/cardinality :db.cardinality/one
-              :db/unique      :db.unique/identity}])
 
 (defn create-schema! [connection]
   (d/transact connection schema))
