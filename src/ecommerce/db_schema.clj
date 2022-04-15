@@ -34,7 +34,6 @@
                        :db/cardinality :db.cardinality/one
                        :db/unique      :db.unique/identity}])
 
-(def schema
-  (flatten (conj []
-                 product-schema
-                 category-schema)))
+(def schema (flatten (conj []
+                           product-schema
+                           category-schema)))
