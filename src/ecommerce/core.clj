@@ -2,8 +2,11 @@
   (:use [clojure pprint])
   (:require [datomic.api :as d]
             [ecommerce.database :as db]
-            [ecommerce.model :as model])
+            [ecommerce.model :as model]
+            [schema.core :as s])
   (:import (java.util UUID)))
+
+(s/set-fn-validation! true)
 
 (def connection (db/open-connection!))
 
@@ -29,7 +32,8 @@
 
 (db/add-products! connection [mouse])
 
-(pprint (db/find-product-by-id (d/db connection) (:product/id mouse)))
+(pprint (db/one-product! (d/db connection) (:product/id mouse)))
+(pprint (db/one-product! (d/db connection) (uuid)))
 
 (println "update data")
 

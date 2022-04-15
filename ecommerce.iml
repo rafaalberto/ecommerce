@@ -54,7 +54,7 @@
     <orderEntry type="library" name="Leiningen: org.apache.tomcat/tomcat-jdbc:7.0.109" level="project" />
     <orderEntry type="library" name="Leiningen: org.apache.tomcat/tomcat-juli:7.0.109" level="project" />
     <orderEntry type="library" name="Leiningen: org.checkerframework/checker-qual:3.12.0" level="project" />
-    <orderEntry type="library" name="Leiningen: org.clojure/clojure:1.11.0" level="project" />
+    <orderEntry type="library" name="Leiningen: org.clojure/clojure:1.11.1" level="project" />
     <orderEntry type="library" name="Leiningen: org.clojure/core.specs.alpha:0.2.62" level="project" />
     <orderEntry type="library" name="Leiningen: org.clojure/spec.alpha:0.3.218" level="project" />
     <orderEntry type="library" name="Leiningen: org.clojure/tools.cli:1.0.206" level="project" />
@@ -66,5 +66,6 @@
     <orderEntry type="library" name="Leiningen: org.slf4j/jul-to-slf4j:1.7.32" level="project" />
     <orderEntry type="library" name="Leiningen: org.slf4j/log4j-over-slf4j:1.7.32" level="project" />
     <orderEntry type="library" name="Leiningen: org.slf4j/slf4j-api:1.7.32" level="project" />
+    <orderEntry type="library" name="Leiningen: prismatic/schema:1.2.0" level="project" />
   </component>
 </module>

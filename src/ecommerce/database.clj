@@ -1,5 +1,9 @@
 (ns ecommerce.database
-  (:require [datomic.api :as d]))
+  (:require [datomic.api :as d]
+            [schema.core :as s]
+            [ecommerce.model :as model]
+            [clojure.walk :as walk])
+  (:import (java.util UUID)))
 
 (def db-uri "datomic:dev://localhost:4334/ecommerce")
 
@@ -49,16 +53,34 @@
 (defn create-schema! [connection]
   (d/transact connection schema))
 
-(defn all-products [db]
-  (d/q '[:find ?entity ?id ?name ?price
-         :keys transaction-id id name price
-         :where [?entity :product/id ?id]
-         [?entity :product/name ?name]
-         [?entity :product/price ?price]]
-       db))
+(defn- dissoc-db-id [entities]
+  (if (map? entities)
+    (dissoc entities :db/id)
+    entities))
 
-(defn find-product-by-id [db uuid]
-  (d/pull db '[*] [:product/id uuid]))
+(defn- to-entity [entities]
+  (walk/prewalk dissoc-db-id entities))
+
+(s/defn all-products :- [model/Product]
+  [db]
+  (to-entity (d/q '[:find [(pull ?product [* {:product/category [*]}]) ...]
+                    :where [?product :product/name]]
+                  db)))
+
+(s/defn ^:private find-product-by-id :- (s/maybe model/Product)
+  [db product-id :- UUID]
+  (let [result (d/pull db '[* {:product/category [*]}] [:product/id product-id])
+        product (to-entity result)]
+    (if (:product/id product)
+      product
+      nil)))
+
+(s/defn one-product! [db product-id :- UUID]
+  (let [product (find-product-by-id db product-id)]
+    (when (nil? product)
+      (throw (ex-info "There is no product" {:type :not-found
+                                             :id   product-id})))
+    product))
 
 (defn all-products-by-minimum-price [db minimum-price]
   (d/q '[:find ?id ?name ?price
@@ -76,10 +98,12 @@
          :where [?product :product/keyword ?product-keyword]]
        db product-keyword))
 
-(defn add-products! [connection products]
+(s/defn add-products!
+  [connection products :- [model/Product]]
   (d/transact connection products))
 
-(defn add-categories! [connection categories]
+(s/defn add-categories!
+  [connection categories :- [model/Category]]
   (d/transact connection categories))
 
 (defn- update-converter [product]
@@ -98,10 +122,11 @@
   (d/transact connection [[:db/retract [:product/id (:product/id product)]
                            :product/name (:product/name product)]]))
 
-(defn all-categories [db]
-  (d/q '[:find (pull ?category [*])
-         :where [?category :category/id]]
-       db))
+(s/defn all-categories :- [model/Category]
+  [db]
+  (to-entity (d/q '[:find [(pull ?category [*]) ...]
+                    :where [?category :category/id]]
+                  db)))
 
 (defn all-products-and-categories [db]
   (d/q '[:find ?product-name ?category-name
@@ -111,12 +136,12 @@
          [?category :category/name ?category-name]]
        db))
 
-;(defn all-products-by-category [db category-name]
-;  (d/q '[:find (pull ?product [:product/name :product/slug {:product/category [:category/name]}])
-;         :in $ ?category-name
-;         :where [?category :category/name ?category-name]
-;         [?product :product/category ?category]]
-;       db category-name))
+(defn all-products-by-category [db category-name]
+  (d/q '[:find (pull ?product [:product/name :product/slug {:product/category [:category/name]}])
+         :in $ ?category-name
+         :where [?category :category/name ?category-name]
+         [?product :product/category ?category]]
+       db category-name))
 
 (defn all-products-by-category [db category-name]
   (d/q '[:find (pull ?category [:category/name {:product/_category [:product/name :product/slug]}])
