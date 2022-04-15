@@ -98,8 +98,7 @@
          :where [?product :product/keyword ?product-keyword]]
        db product-keyword))
 
-(s/defn add-products!
-  [connection products :- [model/Product]]
+(defn add-products! [connection products]
   (d/transact connection products))
 
 (s/defn add-categories!
