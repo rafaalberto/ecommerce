@@ -8,6 +8,8 @@
 
 (s/set-fn-validation! true)
 
+(db/delete-database!)
+
 (def connection (db/open-connection!))
 
 (db/create-schema! connection)
@@ -23,17 +25,19 @@
 (pprint (db/all-categories (d/db connection)))
 
 ;create products
-(let [computer (model/new-product (uuid) "Computer" "new_computer" 2500.00M (:category/id electronics))
-      smartphone (model/new-product (uuid) "Smartphone" "new_smart" 1400.00M (:category/id electronics))
-      ball (model/new-product (uuid) "Ball" "new_ball" 50.00M (:category/id sports))]
+(let [computer (model/new-product (uuid) "Computer" "new_computer" 2500.00M (:category/id electronics) 0)
+      smartphone (model/new-product (uuid) "Smartphone" "new_smart" 1400.00M (:category/id electronics) 10)
+      ball (model/new-product (uuid) "Ball" "new_ball" 50.00M (:category/id sports) 0)]
   (db/add-products! connection [computer smartphone ball]))
 
-(def mouse (model/new-product (uuid) "Mouse" "new_mouse" 70.00M (:category/id electronics)))
+(def mouse (assoc
+             (model/new-product (uuid) "Mouse" "new_mouse" 70.00M (:category/id electronics) 15)
+             :product/digital true))
 
 (db/add-products! connection [mouse])
 
 (pprint (db/one-product! (d/db connection) (:product/id mouse)))
-(pprint (db/one-product! (d/db connection) (uuid)))
+;(pprint (db/one-product! (d/db connection) (uuid)))
 
 (println "update data")
 
@@ -71,4 +75,13 @@
 
 (pprint (db/product-most-expensive (d/db connection)))
 
-(db/delete-database!)
+(pprint (db/all-products-available (d/db connection)))
+
+(def products-available (db/all-products-available (d/db connection)))
+(db/one-product-available (d/db connection) (:product/id (first products-available)))
+
+(pprint (db/all-products-available-with-rules (d/db connection)))
+
+(def product-available (db/one-product-available-with-rule (d/db connection)
+                                                           (:product/id (second products-available))))
+(pprint product-available)

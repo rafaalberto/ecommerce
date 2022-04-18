@@ -24,7 +24,15 @@
                      {:db/ident       :product/category
                       :db/valueType   :db.type/ref
                       :db/cardinality :db.cardinality/one
-                      :db/doc         "Category ID"}])
+                      :db/doc         "Category ID"}
+                     {:db/ident       :product/quantity
+                      :db/valueType   :db.type/long
+                      :db/cardinality :db.cardinality/one
+                      :db/doc         "Quantity of product"}
+                     {:db/ident       :product/digital
+                      :db/valueType   :db.type/boolean
+                      :db/cardinality :db.cardinality/one
+                      :db/doc         "Is it digital?"}])
 
 (def category-schema [{:db/ident       :category/name
                        :db/valueType   :db.type/string

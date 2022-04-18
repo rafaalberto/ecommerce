@@ -48,6 +48,58 @@
                                              :id   product-id})))
     product))
 
+(def rules
+  '[
+    [(stock ?product ?stock)
+     [?product :product/quantity ?stock]]
+    [(stock ?product ?stock)
+     [?product :product/digital true]
+     [(ground 100) ?stock]]
+    [(sell? ?product)
+     (stock ?product ?stock)
+     [(> ?stock 0)]]
+    ])
+
+(s/defn all-products-available :- [model/Product]
+  [db]
+  (to-entity (d/q '[:find [(pull ?product [* {:product/category [*]}]) ...]
+                    :where [?product :product/name]
+                    [?product :product/quantity ?stock]
+                    [(> ?stock 0)]]
+                  db)))
+
+(s/defn all-products-available-with-rules :- [model/Product]
+  [db]
+  (to-entity (d/q '[:find [(pull ?product [* {:product/category [*]}]) ...]
+                    :in $ %
+                    :where (sell? ?product)]
+                  db rules)))
+
+(s/defn one-product-available :- (s/maybe model/Product)
+  [db product-id :- UUID]
+  (let [query '[:find (pull ?product [* {:product/category [*]}]) .
+                :in $ ?product-id
+                :where [?product :product/id ?product-id]
+                [?product :product/quantity ?stock]
+                [(> ?stock 0)]]
+        result (d/q query db product-id)
+        product (to-entity result)]
+    (if (:product/id product)
+      product
+      nil)))
+
+(s/defn one-product-available-with-rule :- (s/maybe model/Product)
+  [db product-id :- UUID]
+  (let [query '[:find (pull ?product [* {:product/category [*]}]) .
+                :in $ % ?product-id
+                :where [?product :product/id ?product-id]
+                (sell? ?product)]
+        result (d/q query db rules product-id)
+        product (to-entity result)]
+    (if (:product/id product)
+      product
+      nil)))
+
 (defn all-products-by-minimum-price [db minimum-price]
   (d/q '[:find ?id ?name ?price
          :in $ ?minimum-price
