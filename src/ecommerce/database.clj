@@ -188,3 +188,15 @@
                       :where [_ :product/price ?price]] $) [[?price]]]
          [?product :product/price ?price]]
        db))
+
+(s/defn products-by-categories :- [model/Product]
+  [db
+   categories :- [s/Str]
+   digital? :- s/Bool]
+  (to-entity (d/q '[:find [(pull ?product [* {:product/category [*]}]) ...]
+                    :in $ [?category-name ...] ?is-digital?
+                    :where
+                    [?category :category/name ?category-name]
+                    [?product :product/category ?category]
+                    [?product :product/digital ?is-digital?]]
+                  db categories digital?)))

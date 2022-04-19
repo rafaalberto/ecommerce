@@ -85,3 +85,5 @@
 (def product-available (db/one-product-available-with-rule (d/db connection)
                                                            (:product/id (second products-available))))
 (pprint product-available)
+
+(pprint (db/products-by-categories (d/db connection) ["Electronics"] true))
