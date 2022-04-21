@@ -11,9 +11,9 @@
 
 (def Product
   {:product/id                        UUID
-   :product/name                      s/Str
-   :product/slug                      s/Str
-   :product/price                     BigDecimal
+   (s/optional-key :product/name)     s/Str
+   (s/optional-key :product/slug)     s/Str
+   (s/optional-key :product/price)    BigDecimal
    (s/optional-key :product/category) Category
    (s/optional-key :product/quantity) s/Int
    (s/optional-key :product/digital)  s/Bool})

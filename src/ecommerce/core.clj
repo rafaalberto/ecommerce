@@ -41,13 +41,13 @@
 
 (println "update data")
 
-(def product-to-update {:id     (:product/id mouse)
-                        :fields [{:product/name "Mouse2"}
-                                 {:product/slug "mouse2fff"}
-                                 {:product/price 120.00M}
-                                 {:product/category [:category/id (:category/id electronics)]}]})
+;(def product-to-update {:id     (:product/id mouse)
+;                        :fields [{:product/name "Mouse2"}
+;                                 {:product/slug "mouse2fff"}
+;                                 {:product/price 120.00M}
+;                                 {:product/category [:category/id (:category/id electronics)]}]})
 
-(db/update-product! connection product-to-update)
+;(db/update-product! connection product-to-update)
 
 (println "Delete data")
 (db/delete-products! connection mouse)
@@ -87,3 +87,16 @@
 (pprint product-available)
 
 (pprint (db/products-by-categories (d/db connection) ["Electronics"] true))
+
+(def first-product (first (db/all-products (d/db connection))))
+(pprint first-product)
+
+(pprint @(db/update-price! connection
+                           (:product/id first-product) 100.00M 1000.00M))
+
+(def product-updated {:product/id (:product/id first-product)
+                      :product/price 2000.00M
+                      :product/slug "/computer3"
+                      :product/name "Computer2 Updated"})
+
+(pprint @(db/update-product! connection first-product product-updated))

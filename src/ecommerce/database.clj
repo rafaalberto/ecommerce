@@ -1,4 +1,5 @@
 (ns ecommerce.database
+  (:use [clojure pprint])
   (:require [datomic.api :as d]
             [schema.core :as s]
             [ecommerce.model :as model]
@@ -192,8 +193,6 @@
          [?product :product/price ?price]]
        db))
 
-
-
 (s/defn products-by-categories :- [model/Product]
   [db
    categories :- [s/Str]
@@ -205,3 +204,25 @@
                     ;[?product :product/category ?category]
                     [?product :product/digital ?is-digital?]]
                   db rules categories digital?)))
+
+(s/defn update-price!
+  [connection
+   product-id :- UUID
+   former-price :- BigDecimal
+   new-price :- BigDecimal]
+  (d/transact connection [[:db/cas [:product/id product-id]
+                           :product/price former-price new-price]]))
+
+(s/defn update-product!
+  [connection
+   former-product :- model/Product
+   new-product :- model/Product]
+  (let [product-id (:product/id former-product)
+        attributes (disj (clojure.set/intersection (set (keys former-product))
+                                                   (set (keys new-product)))
+                         :product/id)
+        transactions (map (fn [attribute] [:db/cas [:product/id product-id] attribute
+                                           (get former-product attribute)
+                                           (get new-product attribute)])
+                          attributes)]
+    (d/transact connection transactions)))
