@@ -226,3 +226,6 @@
                                            (get new-product attribute)])
                           attributes)]
     (d/transact connection transactions)))
+
+(s/defn view! [connection product-id :- UUID]
+  (d/transact connection [[:increment-view product-id]]))

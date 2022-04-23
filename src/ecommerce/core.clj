@@ -82,21 +82,44 @@
 
 (pprint (db/all-products-available-with-rules (d/db connection)))
 
-(def product-available (db/one-product-available-with-rule (d/db connection)
-                                                           (:product/id (second products-available))))
-(pprint product-available)
+;(def product-available (db/one-product-available-with-rule (d/db connection)
+;                                                           (:product/id (second products-available))))
+;(pprint product-available)
 
 (pprint (db/products-by-categories (d/db connection) ["Electronics"] true))
 
 (def first-product (first (db/all-products (d/db connection))))
 (pprint first-product)
 
-(pprint @(db/update-price! connection
-                           (:product/id first-product) 100.00M 1000.00M))
+;(pprint @(db/update-price! connection
+;                           (:product/id first-product) 100.00M 1000.00M))
 
-(def product-updated {:product/id (:product/id first-product)
+(def product-updated {:product/id    (:product/id first-product)
                       :product/price 2000.00M
-                      :product/slug "/computer3"
-                      :product/name "Computer2 Updated"})
+                      :product/slug  "/computer3"
+                      :product/name  "Computer2 Updated"})
 
 (pprint @(db/update-product! connection first-product product-updated))
+
+(pprint @(db/view! (d/db connection) (:product/id first-product)))
+
+(def increment-view
+  #db/fn {
+          :lang   :clojure
+          :params [db product-id]
+          :code
+          (let [views (d/q '[:find ?views .
+                             :in $ ?product-id
+                             :where [?product :product/id ?product-id]
+                             [?product :product/views ?views]]
+                           db product-id)
+                current (or views 0)
+                updated (inc current)]
+            [{:product/id    product-id
+              :product/views updated}])})
+
+(pprint @(d/transact connection [{:db/ident :increment-view
+                                :db/fn    increment-view
+                                :db/doc "Increment view quantity"}]))
+
+(pprint (db/view! connection (:product/id first-product)))

@@ -16,7 +16,8 @@
    (s/optional-key :product/price)    BigDecimal
    (s/optional-key :product/category) Category
    (s/optional-key :product/quantity) s/Int
-   (s/optional-key :product/digital)  s/Bool})
+   (s/optional-key :product/digital)  s/Bool
+   (s/optional-key :product/views)    s/Int})
 
 (defn new-product [id name slug price category-id quantity]
   {:product/id       id

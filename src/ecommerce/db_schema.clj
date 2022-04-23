@@ -32,7 +32,11 @@
                      {:db/ident       :product/digital
                       :db/valueType   :db.type/boolean
                       :db/cardinality :db.cardinality/one
-                      :db/doc         "Is it digital?"}])
+                      :db/doc         "Is it digital?"}
+                     {:db/ident       :product/views
+                      :db/valueType   :db.type/long
+                      :db/cardinality :db.cardinality/one
+                      :db/doc         "Quantity of views"}])
 
 (def category-schema [{:db/ident       :category/name
                        :db/valueType   :db.type/string
