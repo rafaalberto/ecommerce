@@ -1,4 +1,4 @@
-(ns ecommerce.db-schema)
+(ns ecommerce.db.schema)
 
 (def product-schema [{:db/ident       :product/name
                       :db/valueType   :db.type/string

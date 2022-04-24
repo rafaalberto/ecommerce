@@ -1,107 +1,60 @@
 (ns ecommerce.core
   (:use [clojure pprint])
   (:require [datomic.api :as d]
-            [ecommerce.database :as db]
-            [ecommerce.model :as model]
+            [ecommerce.db.config :as db.config]
+            [ecommerce.db.product :as db.product]
+            [ecommerce.db.category :as db.category]
+            [ecommerce.db.model :as db.model]
             [schema.core :as s])
   (:import (java.util UUID)))
 
 (s/set-fn-validation! true)
 
-(db/delete-database!)
+(db.config/delete-database!)
 
-(def connection (db/open-connection!))
+(def connection (db.config/open-connection!))
 
-(db/create-schema! connection)
+(db.config/create-schema! connection)
 
 (defn uuid [] (UUID/randomUUID))
 
-;create categories
-(def electronics (model/new-category (uuid) "Electronics"))
-(def sports (model/new-category (uuid) "Sports"))
+(def electronics (db.model/new-category (uuid) "Electronics"))
+(def sports (db.model/new-category (uuid) "Sports"))
 
-(db/add-categories! connection [electronics sports])
+(db.category/add! connection [electronics sports])
 
-(pprint (db/all-categories (d/db connection)))
+(pprint (db.category/find-all (d/db connection)))
 
-;create products
-(let [computer (model/new-product (uuid) "Computer" "new_computer" 2500.00M (:category/id electronics) 0)
-      smartphone (model/new-product (uuid) "Smartphone" "new_smart" 1400.00M (:category/id electronics) 10)
-      ball (model/new-product (uuid) "Ball" "new_ball" 50.00M (:category/id sports) 0)]
-  (db/add-products! connection [computer smartphone ball]))
+(defn create-products-samples []
+  (let [computer (db.model/new-product (uuid) "Computer" "new_computer" 2500.00M (:category/id electronics) 0)
+        smartphone (db.model/new-product (uuid) "Smartphone" "new_smart" 1400.00M (:category/id electronics) 10)
+        ball (db.model/new-product (uuid) "Ball" "new_ball" 50.00M (:category/id sports) 0)]
+    (db.product/add! connection [computer smartphone ball])))
+
+(create-products-samples)
 
 (def mouse (assoc
-             (model/new-product (uuid) "Mouse" "new_mouse" 70.00M (:category/id electronics) 15)
+             (db.model/new-product (uuid) "Mouse" "new_mouse" 70.00M (:category/id electronics) 15)
              :product/digital true))
 
-(db/add-products! connection [mouse])
+(db.product/add! connection [mouse])
 
-(pprint (db/one-product! (d/db connection) (:product/id mouse)))
-;(pprint (db/one-product! (d/db connection) (uuid)))
+(pprint (db.product/find-one (d/db connection) (:product/id mouse)))
 
-(println "update data")
+(db.product/delete! connection mouse)
 
-;(def product-to-update {:id     (:product/id mouse)
-;                        :fields [{:product/name "Mouse2"}
-;                                 {:product/slug "mouse2fff"}
-;                                 {:product/price 120.00M}
-;                                 {:product/category [:category/id (:category/id electronics)]}]})
-
-;(db/update-product! connection product-to-update)
-
-(println "Delete data")
-(db/delete-products! connection mouse)
-
-;read
-(println "Current data")
-(pprint (db/all-products (d/db connection)))
-
-;as-of
-(println "Former data")
-(pprint (db/all-products
-          (d/as-of (d/db connection) #inst "2022-04-07T21:24:44.250")))
-
-(pprint (db/all-products-by-minimum-price (d/db connection) 1000.00M))
-
-(pprint (db/all-products-by-keyword (d/db connection) "smart"))
-
-(pprint (db/all-products-and-categories (d/db connection)))
-
-(pprint (db/all-products-by-category (d/db connection) "Electronics"))
-
-(pprint (db/products-summary (d/db connection)))
-
-(pprint (db/products-summary-by-category (d/db connection)))
-
-(pprint (db/product-most-expensive (d/db connection)))
-
-(pprint (db/all-products-available (d/db connection)))
-
-(def products-available (db/all-products-available (d/db connection)))
-(db/one-product-available (d/db connection) (:product/id (first products-available)))
-
-(pprint (db/all-products-available-with-rules (d/db connection)))
-
-;(def product-available (db/one-product-available-with-rule (d/db connection)
-;                                                           (:product/id (second products-available))))
-;(pprint product-available)
-
-(pprint (db/products-by-categories (d/db connection) ["Electronics"] true))
-
-(def first-product (first (db/all-products (d/db connection))))
+(def first-product (first (db.product/find-all (d/db connection))))
 (pprint first-product)
 
-;(pprint @(db/update-price! connection
-;                           (:product/id first-product) 100.00M 1000.00M))
+(pprint @(db.product/update-price! connection
+                                   (:product/id first-product) 2500.00M 1000.00M))
 
-(def product-updated {:product/id    (:product/id first-product)
-                      :product/price 2000.00M
-                      :product/slug  "/computer3"
-                      :product/name  "Computer2 Updated"})
+(def product-to-update {:product/id    (:product/id first-product)
+                        :product/price 1030.00M
+                        :product/slug  "/computer3"
+                        :product/name  "Computer2 Updated"})
 
-(pprint @(db/update-product! connection first-product product-updated))
-
-(pprint @(db/view! (d/db connection) (:product/id first-product)))
+(pprint @(db.product/update! connection first-product product-to-update))
 
 (def increment-view
   #db/fn {
@@ -119,7 +72,41 @@
               :product/views updated}])})
 
 (pprint @(d/transact connection [{:db/ident :increment-view
-                                :db/fn    increment-view
-                                :db/doc "Increment view quantity"}]))
+                                  :db/fn    increment-view
+                                  :db/doc   "Increment view quantity"}]))
 
-(pprint (db/view! connection (:product/id first-product)))
+(pprint (db.product/view! connection (:product/id first-product)))
+
+(pprint (db.product/find-all (d/db connection)))
+
+(pprint (db.product/find-all
+          (d/as-of (d/db connection) #inst "2022-04-07T21:24:44.250")))
+
+(def products-available (db.product/find-all-stock-available (d/db connection)))
+
+(pprint products-available)
+
+(pprint (db.product/find-all-stock-available-rules (d/db connection)))
+
+(pprint (db.product/find-one-stock-available (d/db connection)
+                                             (:product/id (first products-available))))
+
+(def product-available (db.product/find-one-stock-available-rule (d/db connection)
+                                                                 (:product/id (second products-available))))
+(pprint product-available)
+
+(pprint (db.product/find-all-by-minimum-price (d/db connection) 1000.00M))
+
+(pprint (db.product/find-all-by-keyword (d/db connection) "smart"))
+
+(pprint (db.product/fetch-products-and-categories (d/db connection)))
+
+(pprint (db.product/find-all-by-category (d/db connection) "Electronics"))
+
+(pprint (db.product/fetch-summary (d/db connection)))
+
+(pprint (db.product/fetch-summary-by-category (d/db connection)))
+
+(pprint (db.product/fetch-most-expensive (d/db connection)))
+
+(pprint (db.product/find-by-categories-and-digital (d/db connection) ["Electronics"] true))

@@ -1,13 +1,10 @@
-(ns ecommerce.model
+(ns ecommerce.db.model
   (:require [schema.core :as s])
   (:import (java.util UUID)))
 
 (def Category
   {:category/id   UUID
    :category/name s/Str})
-
-(def CategoryID [(s/one s/Keyword "")
-                 (s/one UUID "")])
 
 (def Product
   {:product/id                        UUID
